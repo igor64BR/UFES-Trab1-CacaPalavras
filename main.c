@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
 
 #define TAM 10
 #define emptyString ""
@@ -29,33 +30,36 @@ bool palavraFoiEncontrada(int letrasEncontradas, int tamPalavra, char palavra[])
 
 void resetBusca(char possivelPalavra[TAM], int* letrasEncontradas, int* indicePalavra);
 
+void upperCase(char palavra[TAM]);
+
 // Inicializacao das funcoes
 int main()
 {
-	// test constants
-	const char testeHorizontal[] = "MOXAID";
-	const char testeVertical[] = "PYQX";
-	const char testeDiagonal[] = "WUAX";
 
 	char matriz[TAM][TAM], palavra[TAM], palavrasEncontradas[TAM][TAM];
 
 	gerarMatriz(matriz);
 
 	printf("\nE inicia-se o jogo\n\n");
-	exibirMatriz(matriz);
 
-	strcpy(palavra, testeHorizontal); // test only (2a linha)
-	// printf("\n\nDigite a palavra a ser pesquisada: ");
-	// scanf("%s", palavra);
-	buscarHorizontal(palavra, matriz);
+	for (EVER)
+	{
+		exibirMatriz(matriz);
+		printf("Insira uma palavra a ser encontrada ou '.' para sair do programa: ");
 
-	strcpy(palavra, testeVertical);
-	buscarVertical(palavra, matriz);
+		scanf("%s", palavra);
+		upperCase(palavra);
 
-	strcpy(palavra, testeDiagonal);
-	buscarDiagonal(palavra, matriz);
+		if (palavra[0] == '.' && strlen(palavra) == 1)
+		{
+			printf("Muito obrigado por jogar. Ate a proxima! ;-)\n\n");
+			return 0;
+		}
 
-	return 0;
+		buscarHorizontal(palavra, matriz);
+		buscarVertical(palavra, matriz);
+		buscarDiagonal(palavra, matriz);
+	}
 }
 
 void gerarMatriz(char matriz[TAM][TAM])
@@ -191,7 +195,7 @@ void buscarDiagonal(char palavra[TAM], char matriz[TAM][TAM])
 
 			if (!saoMesmaLetra)
 			{
-				resetBusca(possivelPalavra, letrasEncontradas, indicePalavra);
+				resetBusca(possivelPalavra, &letrasEncontradas, &indicePalavra);
 				continue;
 			}
 
@@ -256,4 +260,10 @@ void resetBusca(char possivelPalavra[TAM], int* letrasEncontradas, int* indicePa
 	strcpy(possivelPalavra, emptyString);
 	*letrasEncontradas = 0;
 	*indicePalavra = 0;
+}
+
+void upperCase(char palavra[TAM])
+{
+	for (int i = 0; i < strlen(palavra); i++)
+		palavra[i] = toupper(palavra[i]);
 }
