@@ -183,60 +183,40 @@ void buscarVertical(char palavra[TAM], char matriz[TAM][TAM])
 
 void buscarDiagonal(char palavra[TAM], char matriz[TAM][TAM])
 {
-	int letrasEncontradas = 0, indicePalavra = 0;
-	char possivelPalavra[TAM] = emptyString;
-
 	for (int linha = 0; linha < TAM; linha++)
 	{
 		for (int coluna = 0; coluna < TAM; coluna++)
 		{
-			char letraMatriz = matriz[linha][coluna];
-			bool saoMesmaLetra = letraMatriz == palavra[indicePalavra];
+			char possivelPalavra[TAM] = emptyString;
+			int indicePalavra = 0;
+			int letrasEncontradas = 0;
 
-			if (!saoMesmaLetra)
+			// valida a sequencia na diagonal
+			for (
+				int tempLinha = linha, tempColuna = coluna;
+				tempLinha < TAM && tempColuna < TAM;
+				tempLinha++, tempColuna++)
 			{
-				resetBusca(possivelPalavra, &letrasEncontradas, &indicePalavra);
-				continue;
-			}
+				char letraMatriz = matriz[tempLinha][tempColuna];
+				char letraPalavra = palavra[indicePalavra];
+				bool mesmaLetra = letraPalavra == letraMatriz;
 
-			// variaveis utilizadas para nao perder as posicoes de busca linha, coluna
-			int tempLinha = linha;
-			int tempColuna = coluna;
-
-			for (EVER)
-			{
-				letraMatriz = matriz[tempLinha][tempColuna];
-
-				strncat(possivelPalavra, &letraMatriz, 1);
-				letrasEncontradas++;
-				indicePalavra++;
-
-				int tamPalavra = strlen(palavra);
-				bool isPalavra = palavraFoiEncontrada(letrasEncontradas, tamPalavra, palavra);
-
-				if (isPalavra)
-				{
-					// indexes comecam no valor 0, enquanto coordenadas no 1
-					const int diffLinhaIndex = 1;
-					const int diffColunaIndex = 1;
-
-					int colunaPrimeiraLetra = coluna + diffColunaIndex;
-					int linhaPrimeiraLetra = linha + diffLinhaIndex;
-
-					printf("'%s' foi encontrada na coordenada (%d, %d), na diagonal\n", palavra, colunaPrimeiraLetra, linhaPrimeiraLetra);
-
-					return;
-				}
-
-				tempColuna++;
-				tempLinha++;
-
-				bool impossivelSerPalavra = tempLinha >= TAM || tempColuna >= TAM;
-
-				if (impossivelSerPalavra)
+				if (!mesmaLetra)
 				{
 					resetBusca(possivelPalavra, &letrasEncontradas, &indicePalavra);
 					break;
+				}
+
+				strncat(possivelPalavra, &letraPalavra, 1);
+				letrasEncontradas++;
+				indicePalavra++;
+
+				bool isPalavra = palavraFoiEncontrada(letrasEncontradas, strlen(palavra), palavra);
+
+				if (isPalavra)
+				{
+					printf("'%s' foi encontrada na coordenada (%d, %d), na diagonal\n", palavra, coluna + 1, linha + 1);
+					return;
 				}
 			}
 		}
