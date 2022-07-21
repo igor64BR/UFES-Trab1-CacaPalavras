@@ -15,6 +15,9 @@
 #define emptyString ""
 #define EVER ;;
 #define BREAKLINE printf("\n")
+#define buscaFalha 0
+#define buscaSucesso 1
+#define continuarBusca 2
 
 void gerarMatriz(char matriz[maxSize][maxSize]);
 void exibirMatriz(char matriz[maxSize][maxSize]);
@@ -23,7 +26,8 @@ void buscarVertical(char palavra[maxSize], char matriz[maxSize][maxSize]);
 void buscarDiagonal(char palavra[maxSize], char matriz[maxSize][maxSize]);
 
 // Funcoes Auxiliares
-void resetBusca(char possivelPalavra[maxSize], int* indicePalavra);
+int encontrarPalavra(char palavra[maxSize], char possivelPalavra[maxSize], char matriz[maxSize][maxSize], int lRef, int cRef, int linha, int coluna, int *indicePalavra, char direcao[maxSize]);
+void resetBusca(char possivelPalavra[maxSize], int *indicePalavra);
 void upperCase(char palavra[maxSize]);
 
 // Inicializacao das funcoes
@@ -89,87 +93,10 @@ void exibirMatriz(char matriz[maxSize][maxSize])
 
 void buscarHorizontal(char palavra[maxSize], char matriz[maxSize][maxSize])
 {
+	char direcao[maxSize] = "horizontal";
 	int indicePalavra = 0;
 	char possivelPalavra[maxSize] = emptyString;
 
-	for (int linha = 0; linha < maxSize; linha++)
-	{
-		for (int coluna = 0; coluna < maxSize; coluna++)
-		{
-			char letraMatriz = matriz[linha][coluna];
-			bool saoMesmaLetra = letraMatriz == palavra[indicePalavra];
-
-			if (!saoMesmaLetra)
-			{
-				resetBusca(possivelPalavra, &indicePalavra);
-				continue;
-			}
-
-			strncat(possivelPalavra, &letraMatriz, 1);
-			indicePalavra++;
-			bool saoMesmaPalavra = strcmp(possivelPalavra, palavra) == 0;
-			
-			if (saoMesmaPalavra)
-			{
-				// Constantes para suprir as diferencas dos valores das coordenadas expressas e das coordenadas reais
-				const int diffColunaIndex = 2;
-				const int diffLinhaIndex = 1;
-
-				// Os valores exibidos são coordenadas, não indices
-				int colunaPrimeiraLetra = coluna - strlen(palavra) + diffColunaIndex;
-				int linhaPrimeiraLetra = linha + diffLinhaIndex;
-
-				printf("'%s' foi encontrada na coordenada (%d, %d), na horizontal\n", palavra, colunaPrimeiraLetra, linhaPrimeiraLetra);
-
-				return;
-			}
-		}
-	}
-}
-
-void buscarVertical(char palavra[maxSize], char matriz[maxSize][maxSize])
-{
-	int indicePalavra = 0;
-	char possivelPalavra[maxSize] = emptyString;
-
-	for (int coluna = 0; coluna < maxSize; coluna++)
-	{
-		for (int linha = 0; linha < maxSize; linha++)
-		{
-			char letraMatriz = matriz[linha][coluna];
-			bool saoMesmaLetra = letraMatriz == palavra[indicePalavra];
-
-			if (!saoMesmaLetra)
-			{
-				resetBusca(possivelPalavra, &indicePalavra);
-				continue;
-			}
-
-			strncat(possivelPalavra, &letraMatriz, 1);
-			indicePalavra++;
-
-			bool saoMesmaPalavra = strcmp(possivelPalavra, palavra) == 0;
-
-			if (saoMesmaPalavra)
-			{
-				// Constantes para suprir as diferencas dos valores das coordenadas expressas e das coordenadas reais
-				const int diffColunaIndex = 1;
-				const int diffLinhaIndex = 2;
-
-				// Os valores exibidos são coordenadas, não indices
-				int colunaPrimeiraLetra = coluna + diffColunaIndex;
-				int linhaPrimeiraLetra = linha - strlen(palavra) + diffLinhaIndex;
-
-				printf("'%s' foi encontrada na coordenada (%d, %d), na vertical\n", palavra, colunaPrimeiraLetra, linhaPrimeiraLetra);
-
-				return;
-			}
-		}
-	}
-}
-
-void buscarDiagonal(char palavra[maxSize], char matriz[maxSize][maxSize])
-{
 	for (int linha = 0; linha < maxSize; linha++)
 	{
 		for (int coluna = 0; coluna < maxSize; coluna++)
@@ -177,39 +104,93 @@ void buscarDiagonal(char palavra[maxSize], char matriz[maxSize][maxSize])
 			char possivelPalavra[maxSize] = emptyString;
 			int indicePalavra = 0;
 
-			// Valida a sequencia na diagonal
-			// Usam-se as linhas e colunas temporarias para encontrar a palavra e nao perder a coordenada inicial da busca
+			for (int tempLinha = linha, tempColuna = coluna; tempColuna < maxSize; tempColuna++)
+			{
+				int result = encontrarPalavra(palavra, possivelPalavra, matriz, linha, coluna, tempLinha, tempColuna, &indicePalavra, direcao);
+
+				if (result == buscaFalha) break;
+				if (result == buscaSucesso) return;
+			}
+		}
+	}
+}
+
+void buscarVertical(char palavra[maxSize], char matriz[maxSize][maxSize])
+{
+	char direcao[maxSize] = "vertical";
+	int indicePalavra = 0;
+	char possivelPalavra[maxSize] = emptyString;
+
+	for (int coluna = 0; coluna < maxSize; coluna++)
+	{
+		for (int linha = 0; linha < maxSize; linha++)
+		{
+			char possivelPalavra[maxSize] = emptyString;
+			int indicePalavra = 0;
+
+			for (int tempLinha = linha, tempColuna = coluna; tempLinha < maxSize; tempLinha++)
+			{
+				int result = encontrarPalavra(palavra, possivelPalavra, matriz, linha, coluna, tempLinha, tempColuna, &indicePalavra, direcao);
+
+				if (result == buscaFalha) break;
+				if (result == buscaSucesso) return;
+			}
+		}
+	}
+}
+
+void buscarDiagonal(char palavra[maxSize], char matriz[maxSize][maxSize])
+{
+	char direcao[maxSize] = "diagonal";
+
+	for (int linha = 0; linha < maxSize; linha++)
+	{
+		for (int coluna = 0; coluna < maxSize; coluna++)
+		{
+			char possivelPalavra[maxSize] = emptyString;
+			int indicePalavra = 0;
+
 			for (
 				int tempLinha = linha, tempColuna = coluna;
 				tempLinha < maxSize && tempColuna < maxSize;
 				tempLinha++, tempColuna++)
 			{
-				char letraMatriz = matriz[tempLinha][tempColuna];
-				bool mesmaLetra = letraMatriz == palavra[indicePalavra];
+				int result = encontrarPalavra(palavra, possivelPalavra, matriz, linha, coluna, tempLinha, tempColuna, &indicePalavra, direcao);
 
-				if (!mesmaLetra)
-				{
-					resetBusca(possivelPalavra, &indicePalavra);
-					break;
-				}
-
-				strncat(possivelPalavra, &letraMatriz, 1);
-				indicePalavra++;
-
-				bool saoMesmaPalavra = strcmp(possivelPalavra, palavra) == 0;
-
-				if (saoMesmaPalavra)
-				{
-					printf("A palavra '%s' foi encontrada na coordenada (%d, %d), na diagonal\n", palavra, coluna + 1, linha + 1);
-					return;
-				}
+				if (result == buscaFalha) break;
+				if (result == buscaSucesso) return;
 			}
 		}
 	}
 }
 
 // Funcoes Auxiliares
-void resetBusca(char possivelPalavra[maxSize], int* indicePalavra)
+int encontrarPalavra(char palavra[maxSize], char possivelPalavra[maxSize], char matriz[maxSize][maxSize], int lRef, int cRef, int linha, int coluna, int *indicePalavra, char direcao[maxSize])
+{
+	char letraMatriz = matriz[linha][coluna];
+	bool mesmaLetra = letraMatriz == palavra[*indicePalavra];
+
+	if (!mesmaLetra)
+	{
+		resetBusca(possivelPalavra, indicePalavra);
+		return buscaFalha;
+	}
+
+	strncat(possivelPalavra, &letraMatriz, 1);
+	(*indicePalavra)++;
+
+	bool saoMesmaPalavra = strcmp(possivelPalavra, palavra) == 0;
+
+	if (saoMesmaPalavra)
+	{
+		printf("A palavra '%s' foi encontrada na coordenada (%d, %d), na %s\n", palavra, cRef + 1, lRef + 1, direcao);
+		return buscaSucesso;
+	}
+
+	return continuarBusca;
+}
+
+void resetBusca(char possivelPalavra[maxSize], int *indicePalavra)
 {
 	strcpy(possivelPalavra, emptyString);
 	*indicePalavra = 0;
